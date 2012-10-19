@@ -6,6 +6,7 @@ import java.util.logging.Logger;
 
 /**
  * A service with no cache annotations.
+ * Caching is added via spring xml-configuration.
  *
  * @author mlyly
  */

@@ -6,3 +6,7 @@ spring cacing.
 - FooServiceImpl pojo service with cache annotations
 
 - BarServiceImpl (implements MyService interface) with no annotations; caching enabled with spring xml configuration.
+
+
+References and links:
+- http://static.springsource.org/spring/docs/3.1.x/spring-framework-reference/html/cache.html
