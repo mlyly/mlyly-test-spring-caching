@@ -4,6 +4,7 @@
        xmlns:context="http://www.springframework.org/schema/context"
        xmlns:cache="http://www.springframework.org/schema/cache"
        xmlns:aop="http://www.springframework.org/schema/aop"
+       xmlns:p="http://www.springframework.org/schema/p"
        xsi:schemaLocation="
         http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
         http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
@@ -11,41 +12,50 @@
         http://www.springframework.org/schema/cache http://www.springframework.org/schema/cache/spring-cache.xsd">
 
     <!-- Turn on AspectJ @Configurable support -->
-    <context:spring-configured />
-    <context:annotation-config />
-    <context:component-scan base-package="fi.zcode" />
+    <context:spring-configured/>
+    <context:annotation-config/>
+    <context:component-scan base-package="fi.zcode"/>
 
     <!-- Enable cache annotations -->
-    <cache:annotation-driven />
+    <cache:annotation-driven/>
 
     <!-- Create some simple test caches. -->
-    <bean id="cacheManager" class="org.springframework.cache.support.SimpleCacheManager">
-        <property name="caches">
-            <set>
-                <bean class="org.springframework.cache.concurrent.ConcurrentMapCacheFactoryBean">
-                    <property name="name" value="default"/>
-                </bean>
-                <bean class="org.springframework.cache.concurrent.ConcurrentMapCacheFactoryBean">
-                    <property name="name" value="foo_locale"/>
-                </bean>
-                <bean class="org.springframework.cache.concurrent.ConcurrentMapCacheFactoryBean">
-                    <property name="name" value="foo_locales"/>
-                </bean>
-                <bean class="org.springframework.cache.concurrent.ConcurrentMapCacheFactoryBean">
-                    <property name="name" value="bar_locale"/>
-                </bean>
-                <bean class="org.springframework.cache.concurrent.ConcurrentMapCacheFactoryBean">
-                    <property name="name" value="bar_locales"/>
-                </bean>
-            </set>
-        </property>
-    </bean>
+    <!--
+        <bean id="cacheManager" class="org.springframework.cache.support.SimpleCacheManager">
+            <property name="caches">
+                <set>
+                    <bean class="org.springframework.cache.concurrent.ConcurrentMapCacheFactoryBean">
+                        <property name="name" value="default"/>
+                    </bean>
+                    <bean class="org.springframework.cache.concurrent.ConcurrentMapCacheFactoryBean">
+                        <property name="name" value="foo_locale"/>
+                    </bean>
+                    <bean class="org.springframework.cache.concurrent.ConcurrentMapCacheFactoryBean">
+                        <property name="name" value="foo_locales"/>
+                    </bean>
+                    <bean class="org.springframework.cache.concurrent.ConcurrentMapCacheFactoryBean">
+                        <property name="name" value="bar_locale"/>
+                    </bean>
+                    <bean class="org.springframework.cache.concurrent.ConcurrentMapCacheFactoryBean">
+                        <property name="name" value="bar_locales"/>
+                    </bean>
+                </set>
+            </property>
+        </bean>
+    -->
+
+    <bean id="cacheManager" class="org.springframework.cache.ehcache.EhCacheCacheManager"
+          p:cacheManager-ref="ehcache"/>
+
+    <bean id="ehcache" class="org.springframework.cache.ehcache.EhCacheManagerFactoryBean"
+          p:configLocation="ehcache.xml"
+          p:shared="true"/>
 
     <!-- Turn on @Autowired, @PostConstruct etc support -->
-    <bean class="org.springframework.beans.factory.annotation.AutowiredAnnotationBeanPostProcessor" />
-    <bean class="org.springframework.context.annotation.CommonAnnotationBeanPostProcessor" />
+    <bean class="org.springframework.beans.factory.annotation.AutowiredAnnotationBeanPostProcessor"/>
+    <bean class="org.springframework.context.annotation.CommonAnnotationBeanPostProcessor"/>
 
-    <bean id="barService" class="fi.zcode.spring_cache.BarServiceImpl" />
+    <bean id="barService" class="fi.zcode.spring_cache.BarServiceImpl"/>
 
     <!--
       Make calls to BarServiceImpl (MyService) cacheable. That class is not annotated.
@@ -61,7 +71,8 @@
 
     <!-- apply the cacheable behaviour to all MyService interfaces -->
     <aop:config>
-        <aop:advisor advice-ref="cacheAdviceBarServiceImpl" pointcut="execution(* fi.zcode.spring_cache.MyService.*(..))"/>
+        <aop:advisor advice-ref="cacheAdviceBarServiceImpl"
+                     pointcut="execution(* fi.zcode.spring_cache.MyService.*(..))"/>
     </aop:config>
 
 </beans>

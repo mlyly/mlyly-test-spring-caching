@@ -1,7 +1,10 @@
 package fi.zcode.spring_cache;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import net.sf.ehcache.CacheManager;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,17 +21,18 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 @RunWith(SpringJUnit4ClassRunner.class)
 public class BarServiceImplTest {
 
-    private static final Logger LOG = Logger.getAnonymousLogger();
-
     @Autowired(required = true)
     private MyService service;
+
+    @Autowired
+    CacheManager cacheManager;
 
     /**
      * Test of findLocale method, of class FooServiceImpl.
      */
     @Test
     public void testFindLocale() {
-        LOG.info("testFindLocale()...");
+        LOG("testFindLocale()...");
 
         for (int i = 0; i < 10; i++) {
             long ts = System.currentTimeMillis();
@@ -37,10 +41,15 @@ public class BarServiceImplTest {
             service.findLocale("en");
 
             ts = System.currentTimeMillis() - ts;
-            LOG.log(Level.INFO, "Calls took: {0} ms", ts);
+            LOG("Calls took: " + ts + " ms");
+
+            printCacheStats();
+
         }
 
-        LOG.info("testFindLocale()... done.");
+        // printCacheStats();
+
+        LOG("testFindLocale()... done.");
     }
 
     /**
@@ -48,7 +57,10 @@ public class BarServiceImplTest {
      */
     @Test
     public void testFindLocales() {
-        LOG.info("testFindLocales()...");
+        LOG("testFindLocales()...");
+
+        printCacheStats();
+
         long ts = System.currentTimeMillis();
 
         service.findLocales();
@@ -56,8 +68,23 @@ public class BarServiceImplTest {
         service.findLocales();
 
         ts = System.currentTimeMillis() - ts;
-        LOG.log(Level.INFO, "Calls took: {0} ms", ts);
+        LOG("Calls took: " + ts + " ms");
 
-        LOG.info("testFindLocales()... done.");
+        printCacheStats();
+
+        LOG("testFindLocales()... done.");
+    }
+
+    private void printCacheStats() {
+        LOG("---------- cache manager = " + cacheManager);
+
+        for (String cacheName : cacheManager.getCacheNames()) {
+            LOG("  cacheName=" + cacheName);
+            LOG("    stats=" + cacheManager.getCache(cacheName).getStatistics().toString());
+        }
+    }
+
+    private void LOG(String string) {
+        System.out.println(new SimpleDateFormat("HH:mm:ss").format(new Date()) + " - " + string);
     }
 }

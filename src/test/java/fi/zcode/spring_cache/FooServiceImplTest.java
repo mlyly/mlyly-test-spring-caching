@@ -1,19 +1,26 @@
 package fi.zcode.spring_cache;
 
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import com.sun.jmx.remote.util.CacheMap;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import net.sf.ehcache.CacheException;
+import net.sf.ehcache.CacheManager;
+import net.sf.ehcache.Status;
+import net.sf.ehcache.event.CacheManagerEventListener;
+
 /**
- *
  * @author mlyly
  */
 @ContextConfiguration(locations = {
-    "classpath:test-context.xml"
+        "classpath:test-context.xml"
 })
 @RunWith(SpringJUnit4ClassRunner.class)
 public class FooServiceImplTest {
@@ -23,12 +30,15 @@ public class FooServiceImplTest {
     @Autowired(required = true)
     private FooServiceImpl service;
 
+    @Autowired
+    CacheManager cacheManager;
+
     /**
      * Test of findLocale method, of class FooServiceImpl.
      */
     @Test
     public void testFindLocale() {
-        LOG.info("testFindLocale()...");
+        LOG("testFindLocale()...");
 
         for (int i = 0; i < 10; i++) {
             long ts = System.currentTimeMillis();
@@ -37,10 +47,14 @@ public class FooServiceImplTest {
             service.findLocale("en");
 
             ts = System.currentTimeMillis() - ts;
-            LOG.log(Level.INFO, "Calls took: {0} ms", ts);
+            LOG("Calls took: " + ts + " ms");
+
+            printCacheStats();
         }
 
-        LOG.info("testFindLocale()... done.");
+        printCacheStats();
+
+        LOG("testFindLocale()... done.");
     }
 
     /**
@@ -48,16 +62,35 @@ public class FooServiceImplTest {
      */
     @Test
     public void testFindLocales() {
-        LOG.info("testFindLocales()...");
+        LOG("testFindLocales()...");
         long ts = System.currentTimeMillis();
+
+        printCacheStats();
 
         service.findLocales();
         service.findLocales();
         service.findLocales();
 
         ts = System.currentTimeMillis() - ts;
-        LOG.log(Level.INFO, "Calls took: {0} ms", ts);
+        LOG("Calls took: " + ts + " ms");
 
-        LOG.info("testFindLocales()... done.");
+        printCacheStats();
+
+        LOG("testFindLocales()... done.");
     }
+
+
+    private void printCacheStats() {
+        LOG("---------- cache manager = " + cacheManager);
+
+        for (String cacheName : cacheManager.getCacheNames()) {
+            LOG("  cacheName=" + cacheName);
+            LOG("    stats=" + cacheManager.getCache(cacheName).getStatistics().toString());
+        }
+    }
+
+    private void LOG(String string) {
+        System.out.println(new SimpleDateFormat("HH:mm:ss").format(new Date()) + " - " + string);
+    }
+
 }
