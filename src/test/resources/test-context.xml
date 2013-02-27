@@ -19,31 +19,7 @@
     <!-- Enable cache annotations -->
     <cache:annotation-driven/>
 
-    <!-- Create some simple test caches. -->
-    <!--
-        <bean id="cacheManager" class="org.springframework.cache.support.SimpleCacheManager">
-            <property name="caches">
-                <set>
-                    <bean class="org.springframework.cache.concurrent.ConcurrentMapCacheFactoryBean">
-                        <property name="name" value="default"/>
-                    </bean>
-                    <bean class="org.springframework.cache.concurrent.ConcurrentMapCacheFactoryBean">
-                        <property name="name" value="foo_locale"/>
-                    </bean>
-                    <bean class="org.springframework.cache.concurrent.ConcurrentMapCacheFactoryBean">
-                        <property name="name" value="foo_locales"/>
-                    </bean>
-                    <bean class="org.springframework.cache.concurrent.ConcurrentMapCacheFactoryBean">
-                        <property name="name" value="bar_locale"/>
-                    </bean>
-                    <bean class="org.springframework.cache.concurrent.ConcurrentMapCacheFactoryBean">
-                        <property name="name" value="bar_locales"/>
-                    </bean>
-                </set>
-            </property>
-        </bean>
-    -->
-
+    <!-- Configure EHCache with some simple caches: foo_locale(s), bar_locale(s) caches. -->
     <bean id="cacheManager" class="org.springframework.cache.ehcache.EhCacheCacheManager"
           p:cacheManager-ref="ehcache"/>
 
@@ -55,10 +31,13 @@
     <bean class="org.springframework.beans.factory.annotation.AutowiredAnnotationBeanPostProcessor"/>
     <bean class="org.springframework.context.annotation.CommonAnnotationBeanPostProcessor"/>
 
+    <!--
+      Configure BarServiceImpl to use method caching.
+    -->
     <bean id="barService" class="fi.zcode.spring_cache.BarServiceImpl"/>
 
     <!--
-      Make calls to BarServiceImpl (MyService) cacheable. That class is not annotated.
+      Make calls to BarServiceImpl (BarService) cacheable. That class/interface is not annotated.
     -->
     <cache:advice id="cacheAdviceBarServiceImpl" cache-manager="cacheManager">
         <cache:caching cache="bar_locale">
@@ -69,10 +48,10 @@
         </cache:caching>
     </cache:advice>
 
-    <!-- apply the cacheable behaviour to all MyService interfaces -->
+    <!-- apply the cacheable behaviour to all BarService interface implementations. -->
     <aop:config>
         <aop:advisor advice-ref="cacheAdviceBarServiceImpl"
-                     pointcut="execution(* fi.zcode.spring_cache.MyService.*(..))"/>
+                     pointcut="execution(* fi.zcode.spring_cache.BarService.*(..))"/>
     </aop:config>
 
 </beans>

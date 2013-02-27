@@ -1,20 +1,13 @@
 package fi.zcode.spring_cache;
 
-import com.sun.jmx.remote.util.CacheMap;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import net.sf.ehcache.CacheManager;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import net.sf.ehcache.CacheException;
-import net.sf.ehcache.CacheManager;
-import net.sf.ehcache.Status;
-import net.sf.ehcache.event.CacheManagerEventListener;
 
 /**
  * @author mlyly
@@ -25,10 +18,8 @@ import net.sf.ehcache.event.CacheManagerEventListener;
 @RunWith(SpringJUnit4ClassRunner.class)
 public class FooServiceImplTest {
 
-    private static final Logger LOG = Logger.getAnonymousLogger();
-
-    @Autowired(required = true)
-    private FooServiceImpl service;
+    @Autowired
+    private FooService service;
 
     @Autowired
     CacheManager cacheManager;
@@ -40,16 +31,19 @@ public class FooServiceImplTest {
     public void testFindLocale() {
         LOG("testFindLocale()...");
 
+        printCacheStats();
+
         for (int i = 0; i < 10; i++) {
             long ts = System.currentTimeMillis();
 
+            LOG((i == 0) ? "(fi) First call, service will be called." : "(fi) Not the first call, using cached result... no service call made.");
             service.findLocale("fi");
+
+            LOG((i == 0) ? "(en) First call, service will be called." : "(en) Not the first call, using cached result... no service call made.");
             service.findLocale("en");
 
             ts = System.currentTimeMillis() - ts;
             LOG("Calls took: " + ts + " ms");
-
-            printCacheStats();
         }
 
         printCacheStats();
@@ -63,12 +57,18 @@ public class FooServiceImplTest {
     @Test
     public void testFindLocales() {
         LOG("testFindLocales()...");
-        long ts = System.currentTimeMillis();
 
         printCacheStats();
 
+        long ts = System.currentTimeMillis();
+
+        LOG("Only first call should actually call the service...");
         service.findLocales();
+
+        LOG("second call... - no service called.");
         service.findLocales();
+
+        LOG("third call... - no service called.");
         service.findLocales();
 
         ts = System.currentTimeMillis() - ts;
@@ -81,11 +81,15 @@ public class FooServiceImplTest {
 
 
     private void printCacheStats() {
-        LOG("---------- cache manager = " + cacheManager);
+        LOG("---------- CACHE STATISTICS:");
 
         for (String cacheName : cacheManager.getCacheNames()) {
-            LOG("  cacheName=" + cacheName);
-            LOG("    stats=" + cacheManager.getCache(cacheName).getStatistics().toString());
+            long hits = cacheManager.getCache(cacheName).getStatistics().getCacheHits();
+            long misses = cacheManager.getCache(cacheName).getStatistics().getCacheMisses();
+
+            LOG("  cacheName=" + cacheName + ", hits=" + hits + ", misses=" + misses);
+
+            // LOG("    stats=" + cacheManager.getCache(cacheName).getStatistics().toString());
         }
     }
 

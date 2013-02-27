@@ -6,11 +6,11 @@ import java.util.logging.Logger;
 
 /**
  * A service with no cache annotations.
- * Caching is added via spring xml-configuration.
+ * Caching is added via spring xml-configuration and bound to BarService interface with aop.
  *
  * @author mlyly
  */
-public class BarServiceImpl implements MyService {
+public class BarServiceImpl implements BarService {
 
     private static final Logger LOG = Logger.getAnonymousLogger();
 

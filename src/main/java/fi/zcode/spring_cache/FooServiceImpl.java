@@ -8,18 +8,19 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Component;
 
 /**
- * A service with cache annotations.
- * NOTE - no interface implemented.
+ * A service with cache annotations in the interface.
+ * NOTE - no interface implemented because spring xml caching configuration is aop bound to MyService interface methods.
  *
  * @author mlyly
  */
 @Component
 @Configurable
-public class FooServiceImpl {
+public class FooServiceImpl implements FooService  {
 
     private static final Logger LOG = Logger.getAnonymousLogger();
 
     @Cacheable(value="foo_locale", key="#localeCode")
+    @Override
     public Locale findLocale(String localeCode) {
         LOG.log(Level.INFO, "findLocale({0})", localeCode);
 
@@ -34,6 +35,7 @@ public class FooServiceImpl {
     }
 
     @Cacheable(value="foo_locales")
+    @Override
     public Locale[] findLocales() {
         LOG.info("findLocales()");
         doDelay();

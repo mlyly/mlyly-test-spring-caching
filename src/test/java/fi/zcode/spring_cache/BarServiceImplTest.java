@@ -2,8 +2,6 @@ package fi.zcode.spring_cache;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import net.sf.ehcache.CacheManager;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -21,8 +19,8 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 @RunWith(SpringJUnit4ClassRunner.class)
 public class BarServiceImplTest {
 
-    @Autowired(required = true)
-    private MyService service;
+    @Autowired
+    private BarService service;
 
     @Autowired
     CacheManager cacheManager;
@@ -37,7 +35,10 @@ public class BarServiceImplTest {
         for (int i = 0; i < 10; i++) {
             long ts = System.currentTimeMillis();
 
+            LOG((i == 0) ? "(fi) First call, service will be called." : "(fi) Not the first call, using cached result... no service call made.");
             service.findLocale("fi");
+
+            LOG((i == 0) ? "(en) First call, service will be called." : "(en) Not the first call, using cached result... no service call made.");
             service.findLocale("en");
 
             ts = System.currentTimeMillis() - ts;
@@ -76,11 +77,15 @@ public class BarServiceImplTest {
     }
 
     private void printCacheStats() {
-        LOG("---------- cache manager = " + cacheManager);
+        LOG("---------- CACHE STATISTICS:");
 
         for (String cacheName : cacheManager.getCacheNames()) {
-            LOG("  cacheName=" + cacheName);
-            LOG("    stats=" + cacheManager.getCache(cacheName).getStatistics().toString());
+            long hits = cacheManager.getCache(cacheName).getStatistics().getCacheHits();
+            long misses = cacheManager.getCache(cacheName).getStatistics().getCacheMisses();
+
+            LOG("  cacheName=" + cacheName + ", hits=" + hits + ", misses=" + misses);
+
+            // LOG("    stats=" + cacheManager.getCache(cacheName).getStatistics().toString());
         }
     }
 
